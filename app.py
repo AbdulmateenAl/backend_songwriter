@@ -120,13 +120,13 @@ async def get_audio(task_id: str):
 
     while True:
         print(data["handledData"]["data"]["songs"][0]["finished"])
-        if data["handledData"]["data"]["songs"][0]["finished"] == "true":
+        if data["handledData"]["data"]["songs"][0]["finished"] == "True":
             song_path = data["handledData"]["data"]["songs"][0]["song_path"]
             print(f"Song_url: {song_path}")
             if song_path:
                 return JSONResponse(content={"song_url": song_path}, status_code=200)
 
-        elif data["handledData"]["data"]["songs"][0]["finished"] == "false":
+        elif data["handledData"]["data"]["songs"][0]["finished"] == "False":
             print("Music generation still in progress, retrying...")
             time.sleep(10)  # Wait for a few seconds before checking again
             continue  # Continue looping to check again
