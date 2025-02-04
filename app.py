@@ -22,6 +22,7 @@ load_dotenv()
 
 music_api = os.getenv("MUSICAPI_API")
 
+
 @app.post("/generate_music_with_lyrics")
 async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form(...)):
     url = "https://api.musicapi.ai/api/v1/studio/create"
@@ -108,21 +109,36 @@ async def get_audio(task_id: str):
 
     return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
 
+
 @app.get("/get_audio_with_lyrics/{task_id}")
 async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}"}
 
     time.sleep(20)
-    for _ in range(5):
-        response = requests.get(url, headers=headers)
-        data = response.json()
+    response = requests.get(url, headers=headers)
+    data = response.json()
 
-        if data["handledData"]["data"]["songs"][0]["song_path"]:
+    while True:
+        if data["handledData"]["data"]["songs"][0]["finished"] == "true":
             song_path = data["handledData"]["data"]["songs"][0]["song_path"]
-            print(f"SOng_url: {song_path}")
+            print(f"Song_url: {song_path}")
             if song_path:
                 return JSONResponse(content={"song_url": song_path}, status_code=200)
-        time.sleep(20)
 
-    return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
+        elif data["handledData"]["data"]["songs"][0]["finished"] == "false":
+            print("Music generation still in progress, retrying...")
+            time.sleep(10)  # Wait for a few seconds before checking again
+            continue  # Continue looping to check again
+
+        return JSONResponse(
+            content={"error": "Music generation in progress, try again later"},
+            status_code=202,
+        )
+
+# if data["handledData"]["data"]["songs"][0]["song_path"]:
+    #     song_path = data["handledData"]["data"]["songs"][0]["song_path"]
+    #     print(f"SOng_url: {song_path}")
+    #     if song_path:
+    #         return JSONResponse(content={"song_url": song_path}, status_code=200)
+    # time.sleep(20)
