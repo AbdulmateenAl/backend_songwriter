@@ -94,13 +94,15 @@ async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}"}
 
-    for _ in range(3):
+    time.sleep(3)
+    for _ in range(5):
         response = requests.get(url, headers=headers)
         data = response.json()
 
         if data["handledData"]["data"]["songs"][0]["song_path"]:
             song_path = data["handledData"]["data"]["songs"][0]["song_path"]
             print(f"SOng_url: {song_path}")
+            time.sleep(3)
             if song_path:
                 return JSONResponse(content={"song_url": song_path}, status_code=200)
 
