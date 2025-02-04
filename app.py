@@ -119,8 +119,15 @@ async def get_audio(task_id: str):
     data = response.json()
 
     finished = data["handledData"]["data"]["songs"][0]["finished"]
-    
+
     while True:
+        start_time = time.time()
+        timeout = 120
+        if time.time() - start_time > timeout:
+            return JSONResponse(
+                content={"error": "Music generation timed out, try again later"},
+                status_code=408,
+            )
         if finished == True:
             song_path = data["handledData"]["data"]["songs"][0]["song_path"]
             print("Value is true")
@@ -131,7 +138,6 @@ async def get_audio(task_id: str):
         elif finished == False:
             print("Value is false")
             print("Music generation still in progress, retrying...")
-            time.sleep(10)  # Wait for a few seconds before checking again
             continue  # Continue looping to check again
 
         return JSONResponse(
