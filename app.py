@@ -110,16 +110,16 @@ async def get_audio(task_id: str):
     return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
 
 
-@app.get("/get_audio_with_lyrics/{task_id}")
+@app.get("/get_audio/{task_id}")
 async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}"}
 
-    time.sleep(20)
     response = requests.get(url, headers=headers)
     data = response.json()
 
     while True:
+        print(data["handledData"]["data"]["songs"][0]["finished"])
         if data["handledData"]["data"]["songs"][0]["finished"] == "true":
             song_path = data["handledData"]["data"]["songs"][0]["song_path"]
             print(f"Song_url: {song_path}")
