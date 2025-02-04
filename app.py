@@ -89,12 +89,12 @@ async def generate_music_without_lyrics(prompt: str = Form(...)):
         return JSONResponse(content={"error": "Failed to generate music"}, status_code=500)
 
 
-@app.get("/get_audio/{task_id}")
+@app.get("/get_audio_without_lyrics/{task_id}")
 async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}"}
 
-    time.sleep(10)
+    time.sleep(7)
     for _ in range(5):
         response = requests.get(url, headers=headers)
         data = response.json()
@@ -104,6 +104,25 @@ async def get_audio(task_id: str):
             print(f"SOng_url: {song_path}")
             if song_path:
                 return JSONResponse(content={"song_url": song_path}, status_code=200)
-        time.sleep(10)
+        time.sleep(7)
+
+    return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
+
+@app.get("/get_audio_with_lyrics/{task_id}")
+async def get_audio(task_id: str):
+    url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
+    headers = {"Authorization": f"Bearer {music_api}"}
+
+    time.sleep(20)
+    for _ in range(5):
+        response = requests.get(url, headers=headers)
+        data = response.json()
+
+        if data["handledData"]["data"]["songs"][0]["song_path"]:
+            song_path = data["handledData"]["data"]["songs"][0]["song_path"]
+            print(f"SOng_url: {song_path}")
+            if song_path:
+                return JSONResponse(content={"song_url": song_path}, status_code=200)
+        time.sleep(20)
 
     return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
