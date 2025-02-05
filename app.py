@@ -56,7 +56,9 @@ music_api = os.getenv("MUSICAPI_API")
 @app.post("/generate_music_with_lyrics")
 async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form(...)):
     url = "https://api.musicapi.ai/api/v1/sonic/create"
-    headers = {"Authorization": f"Bearer {music_api}"}
+    #headers = {"Authorization": f"Bearer {music_api}"}
+    headers = {"Authorization": f"Bearer {music_api}",
+               "Content-Type": "application/json"}
 
     payload = json.dumps({
         "custom_mode": True,
@@ -70,10 +72,11 @@ async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form
     })
 
     response = requests.post(url, headers=headers, data=payload)
-    jsonResponse = response.json()
+    data = response.json()
+    print(data)
 
-    if jsonResponse["message"] == "success":
-        task_id = jsonResponse["task_id"]
+    if "message" in data and data["message"] == "success":
+        task_id = data["task_id"]
         return JSONResponse(content={"task_id": task_id}, status_code=200)
     else:
         return JSONResponse(content={"error": "Failed to generate music"}, status_code=500)
@@ -81,27 +84,27 @@ async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form
 @app.get("/get_audio_with_lyrics/{task_id}")
 async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/sonic/task/{task_id}"
-    headers = {"Authorization": f"Bearer {music_api}"}
+    headers = {"Authorization": f"Bearer {music_api}", "Content-Type": "application/json"}
+
+    time.sleep(30)
 
     response = requests.get(url, headers=headers)
 
-    data = response.json()
-    #print(data)
-    #status_code = data["code"]
+    try:
+        data = response.json()
+    except json.JSONDecodeError:
+        return JSONResponse(content={"error": "Invalid response from API"}, status_code=500)
 
-    if data.get("code") == 200:
-        #song_path = [item["audio_url"] for item in data.get("data", []) if "audio_url" in item]
-        song_path = data["data"][0]["audio_url"]
-        print(f"Song_url: {song_path}")
+    status_code = data.get('code', None)
+    message = data.get('message', "").lower()
+
+    if status_code == 200 or message == "success":
+        song_path = data.get("data", [{}])[0].get("audio_url", None)
         if song_path:
+            print(f"Song URL: {song_path}")
             return JSONResponse(content={"song_url": song_path}, status_code=200)
-    # elif status_code != 200:
-    #     return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
-    return JSONResponse(
-        content={
-            "error": "Music generation is taking too long to be continued, try again later"},
-        status_code=408,
-    )
+
+    return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
 
 @app.post("/generate_music_without_lyrics")
 async def generate_music_without_lyrics(prompt: str = Form(...)):
