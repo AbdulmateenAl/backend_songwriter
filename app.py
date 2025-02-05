@@ -86,16 +86,17 @@ async def get_audio(task_id: str):
     response = requests.get(url, headers=headers)
 
     data = response.json()
-    status_code = data["message"]
+    #print(data)
+    #status_code = data["code"]
 
-    if status_code == "success":
+    if data.get("code") == 200:
+        #song_path = [item["audio_url"] for item in data.get("data", []) if "audio_url" in item]
         song_path = data["data"][0]["audio_url"]
         print(f"Song_url: {song_path}")
         if song_path:
             return JSONResponse(content={"song_url": song_path}, status_code=200)
-    elif status_code != "success":
-        time.sleep(70)
-        return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
+    # elif status_code != 200:
+    #     return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
     return JSONResponse(
         content={
             "error": "Music generation is taking too long to be continued, try again later"},
@@ -151,7 +152,7 @@ async def get_audio(task_id: str):
 
     if finished == True:
         song_path = data["handledData"]["data"]["songs"][0]["song_path"]
-        print(f"SOng_url: {song_path}")
+        print(f"Song_url: {song_path}")
         if song_path:
             return JSONResponse(content={"song_url": song_path}, status_code=200)
     elif finished == False:
@@ -162,23 +163,3 @@ async def get_audio(task_id: str):
             "error": "Music generation is taking too long to be continued, try again later"},
         status_code=408,
     )
-
-    # while True:
-    #     start_time = time.time()
-    #     timeout = 120
-    #     if time.time() - start_time > timeout:
-    #         return JSONResponse(
-    #             content={"error": "Music generation timed out, try again later"},
-    #             status_code=408,
-    #         )
-    #     if finished == True:
-    #         song_path = data["handledData"]["data"]["songs"][0]["song_path"]
-    #         print("Value is true")
-    #         print(f"Song_url: {song_path}")
-    #         if song_path:
-    #             return JSONResponse(content={"song_url": song_path}, status_code=200)
-
-    #     elif finished == False:
-    #         print("Value is false")
-    #         print("Music generation still in progress, retrying...")
-    #         continue  # Continue looping to check again
