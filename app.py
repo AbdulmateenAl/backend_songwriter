@@ -92,7 +92,7 @@ async def get_audio(task_id: str):
         song_path = data["data"][0]["audio_url"]
         print(f"Song_url: {song_path}")
         if song_path:
-            return JSONResponse(content=json.dumps({"song_url": song_path}), status_code=200)
+            return JSONResponse(content={"song_url": song_path}, status_code=200)
     elif status_code != "success":
         time.sleep(70)
         return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
