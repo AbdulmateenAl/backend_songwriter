@@ -151,10 +151,10 @@ async def get_audio(task_id: str):
     time.sleep(30)
 
     data = response.json()
-    finished = data["handledData"]["data"]["songs"][0]["finished"]
+    finished = data["data"]["data"]["songs"][0]["finished"]
 
     if finished == True:
-        song_path = data["handledData"]["data"]["songs"][0]["song_path"]
+        song_path = data["data"]["data"]["songs"][0]["song_path"]
         print(f"Song_url: {song_path}")
         if song_path:
             return JSONResponse(content={"song_url": song_path}, status_code=200)
