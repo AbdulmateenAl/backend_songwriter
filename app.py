@@ -98,7 +98,7 @@ async def get_audio(task_id: str):
     status_code = data.get('code', None)
     message = data.get('message', "").lower()
 
-    if status_code == 200 or message == "success":
+    if status_code == "success" or message == "success":
         song_path = data.get("data", [{}])[0].get("audio_url", None)
         if song_path:
             print(f"Song URL: {song_path}")
