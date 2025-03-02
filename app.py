@@ -101,8 +101,8 @@ async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form
     data = response.json()
     print(data)
 
-    if "message" in data and data["message"] == "success":
-        task_id = data["task_id"]
+    if "code" in data and data["code"] == "success":
+        task_id = data["data"]
         return JSONResponse(content={"task_id": task_id}, status_code=200)
     else:
         return JSONResponse(content={"error": "Failed to generate music"}, status_code=500)
