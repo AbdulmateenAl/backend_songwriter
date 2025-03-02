@@ -56,46 +56,46 @@ music_api = os.getenv("MUSICAPI_API")
 @app.post("/generate_music_with_lyrics")
 async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form(...)):
 
-    #url = "https://api.musicapi.ai/api/v1/sonic/create" #for sonic API
-    url = "https://api.musicapi.ai/api/v1/studio/create"
+    url = "https://api.musicapi.ai/api/v1/sonic/create" #for sonic API
+    #url = "https://api.musicapi.ai/api/v1/studio/create" #For studio API
 
     # headers = {"Authorization": f"Bearer {music_api}"}
     headers = {"Authorization": f"Bearer {music_api}",
                "Content-Type": "application/json"}
 
     # For sonic API
-    # payload = json.dumps({
-    #     "custom_mode": True,
-    #     "prompt": lyrics,
-    #     "title": "Starts",
-    #     "tags": prompt,
-    #     "negative_tags": "piano",
-    #     "gpt_description_prompt": "",
-    #     "make_instrumental": False,
-    #     "mv": "sonic-v3-5"
-    # })
+    payload = json.dumps({
+        "custom_mode": True,
+        "prompt": lyrics,
+        "title": "Starts",
+        "tags": prompt,
+        "negative_tags": "piano",
+        "gpt_description_prompt": "",
+        "make_instrumental": False,
+        "mv": "sonic-v3-5"
+    })
 
     # For studio API
-    payload = json.dumps({
-        "prompt": prompt,
-        "lyrics": lyrics,
-        "lyrics_type": "user",
-        "bypass_prompt_optimization": False,
-        "seed": -1,
-        "song_section_start": 0,
-        "song_section_end": 1,
-        "lyrics_placement_start": 0,
-        "lyrics_placement_end": 0.95,
-        "prompt_strength": 0.5,
-        "clarity_strength": 0.25,
-        "lyrics_strength": 0.5,
-        "generation_quality": 0.75,
-        "negative_prompt": "",
-        "model_type": "studio130-v1.5",
-        "config": {
-            "mode": "regular"
-        }
-    })
+    # payload = json.dumps({
+    #     "prompt": prompt,
+    #     "lyrics": lyrics,
+    #     "lyrics_type": "user",
+    #     "bypass_prompt_optimization": False,
+    #     "seed": -1,
+    #     "song_section_start": 0,
+    #     "song_section_end": 1,
+    #     "lyrics_placement_start": 0,
+    #     "lyrics_placement_end": 0.95,
+    #     "prompt_strength": 0.5,
+    #     "clarity_strength": 0.25,
+    #     "lyrics_strength": 0.5,
+    #     "generation_quality": 0.75,
+    #     "negative_prompt": "",
+    #     "model_type": "studio130-v1.5",
+    #     "config": {
+    #         "mode": "regular"
+    #     }
+    # })
 
     response = requests.post(url, headers=headers, data=payload)
     data = response.json()
@@ -109,12 +109,12 @@ async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form
 
 
 @app.get("/get_audio_with_lyrics/{task_id}")
-async def get_audio(task_id: str):
-    url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
+async def get_audio_with_lyrics(task_id: str):
+    url = f"https://api.musicapi.ai/api/v1/sonic/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}",
                "Content-Type": "application/json"}
 
-    time.sleep(60)
+    time.sleep(30)
 
     response = requests.get(url, headers=headers)
 
@@ -124,12 +124,11 @@ async def get_audio(task_id: str):
     except json.JSONDecodeError:
         return JSONResponse(content={"error": "Invalid response from API"}, status_code=500)
 
-    print(music_data)
     status_code = music_data.get('code', None)
     #message = data.get('message', "").lower() #For sonic API
 
     if status_code == "success":
-        while music_data["data"]["progress"] == "0%":
+        if music_data["data"]["progress"] == "0%":
             time.sleep(50)
         song_path = music_data.get("data", {}).get("data", {}).get("songs", [{}])[0].get("song_path", None)
         if song_path:
@@ -173,7 +172,7 @@ async def generate_music_without_lyrics(prompt: str = Form(...)):
 
 
 @app.get("/get_audio_without_lyrics/{task_id}")
-async def get_audio(task_id: str):
+async def get_audio_without_lyrics(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}"}
 
