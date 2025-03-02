@@ -150,7 +150,7 @@ async def get_audio(task_id: str):
 
     response = requests.get(url, headers=headers)
 
-    time.sleep(30)
+    time.sleep(100)
 
     data = response.json()
     print(data)
