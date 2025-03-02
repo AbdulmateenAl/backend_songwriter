@@ -86,7 +86,7 @@ async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/sonic/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}", "Content-Type": "application/json"}
 
-    time.sleep(100)
+    time.sleep(30)
 
     response = requests.get(url, headers=headers)
 
@@ -153,7 +153,8 @@ async def get_audio(task_id: str):
     time.sleep(30)
 
     data = response.json()
-    finished = data["data"]["data"]["songs"][0]["finished"]
+    print(data)
+    finished = data.get("data", {}).get("data", [{}])[0].get("finished", False)
 
     if finished == True:
         song_path = data["data"]["data"]["songs"][0]["song_path"]
