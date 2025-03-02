@@ -114,7 +114,7 @@ async def get_audio(task_id: str):
     headers = {"Authorization": f"Bearer {music_api}",
                "Content-Type": "application/json"}
 
-    time.sleep(30)
+    time.sleep(60)
 
     response = requests.get(url, headers=headers)
 
