@@ -110,7 +110,7 @@ async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form
 
 @app.get("/get_audio_with_lyrics/{task_id}")
 async def get_audio(task_id: str):
-    url = f"https://api.musicapi.ai/api/v1/sonic/task/{task_id}"
+    url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
     headers = {"Authorization": f"Bearer {music_api}",
                "Content-Type": "application/json"}
 
