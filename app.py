@@ -26,16 +26,16 @@ music_api = os.getenv("MUSICAPI_API")
 # def format_lyrics(lyrics):
 #     # Splitting the lyrics into lines
 #     lines = lyrics.split("\n")
-    
+
 #     formatted_lyrics = []
 #     verse_count = 1
 #     is_chorus = False
-    
+
 #     for line in lines:
 #         line = line.strip()
 #         if not line:
 #             continue
-        
+
 #         # Detecting a chorus (if a line is repeated multiple times)
 #         if lines.count(line) > 2 and not is_chorus:
 #             formatted_lyrics.append("\n[Chorus]")
@@ -43,7 +43,7 @@ music_api = os.getenv("MUSICAPI_API")
 #         elif is_chorus and lines.count(line) <= 2:
 #             is_chorus = False
 #             verse_count += 1
-        
+
 #         # Assigning verses
 #         if not is_chorus:
 #             formatted_lyrics.append(f"\n[Verse {verse_count}]")
@@ -55,20 +55,46 @@ music_api = os.getenv("MUSICAPI_API")
 
 @app.post("/generate_music_with_lyrics")
 async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form(...)):
-    url = "https://api.musicapi.ai/api/v1/sonic/create"
-    #headers = {"Authorization": f"Bearer {music_api}"}
+
+    #url = "https://api.musicapi.ai/api/v1/sonic/create" #for sonic API
+    url = "https://api.musicapi.ai/api/v1/studio/create"
+
+    # headers = {"Authorization": f"Bearer {music_api}"}
     headers = {"Authorization": f"Bearer {music_api}",
                "Content-Type": "application/json"}
 
+    # For sonic API
+    # payload = json.dumps({
+    #     "custom_mode": True,
+    #     "prompt": lyrics,
+    #     "title": "Starts",
+    #     "tags": prompt,
+    #     "negative_tags": "piano",
+    #     "gpt_description_prompt": "",
+    #     "make_instrumental": False,
+    #     "mv": "sonic-v3-5"
+    # })
+
+    # For studio API
     payload = json.dumps({
-        "custom_mode": True,
-        "prompt": lyrics,
-        "title": "Starts",
-        "tags": prompt,
-        "negative_tags": "piano",
-        "gpt_description_prompt": "",
-        "make_instrumental": False,
-        "mv": "sonic-v3-5"
+        "prompt": prompt,
+        "lyrics": lyrics,
+        "lyrics_type": "user",
+        "bypass_prompt_optimization": False,
+        "seed": -1,
+        "song_section_start": 0,
+        "song_section_end": 1,
+        "lyrics_placement_start": 0,
+        "lyrics_placement_end": 0.95,
+        "prompt_strength": 0.5,
+        "clarity_strength": 0.25,
+        "lyrics_strength": 0.5,
+        "generation_quality": 0.75,
+        "negative_prompt": "",
+        "model_type": "studio130-v1.5",
+        "config": {
+            "mode": "regular"
+        }
     })
 
     response = requests.post(url, headers=headers, data=payload)
@@ -81,32 +107,35 @@ async def generate_music_with_lyrics(prompt: str = Form(...), lyrics: str = Form
     else:
         return JSONResponse(content={"error": "Failed to generate music"}, status_code=500)
 
+
 @app.get("/get_audio_with_lyrics/{task_id}")
 async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/sonic/task/{task_id}"
-    headers = {"Authorization": f"Bearer {music_api}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {music_api}",
+               "Content-Type": "application/json"}
 
     time.sleep(30)
 
     response = requests.get(url, headers=headers)
 
     try:
-        data = response.json()
+        music_data = response.json()
     except json.JSONDecodeError:
         return JSONResponse(content={"error": "Invalid response from API"}, status_code=500)
 
-    status_code = data.get('code', None)
-    message = data.get('message', "").lower()
+    status_code = music_data.get('code', None)
+    #message = data.get('message', "").lower() #For sonic API
 
-    if status_code == 200 or message == "success":
-        while data["data"][0]["audio_url"] == "":
+    if status_code == "success":
+        while music_data["data"]["progress"] == "0%":
             time.sleep(50)
-        song_path = data.get("data", [{}])[0].get("audio_url", None)
+        song_path = music_data.get("data", {}).get("data", {}).get("songs", [{}])[0].get("song_path", None)
         if song_path:
             print(f"Song URL: {song_path}")
             return JSONResponse(content={"song_url": song_path}, status_code=200)
 
     return JSONResponse(content={"error": "Music generation in progress, try again later"}, status_code=202)
+
 
 @app.post("/generate_music_without_lyrics")
 async def generate_music_without_lyrics(prompt: str = Form(...)):
@@ -141,8 +170,6 @@ async def generate_music_without_lyrics(prompt: str = Form(...)):
         return JSONResponse(content={"error": "Failed to generate music"}, status_code=500)
 
 
-
-
 @app.get("/get_audio_without_lyrics/{task_id}")
 async def get_audio(task_id: str):
     url = f"https://api.musicapi.ai/api/v1/studio/task/{task_id}"
@@ -155,9 +182,9 @@ async def get_audio(task_id: str):
     music_data = response.json()
     print(music_data)
     finished = music_data["data"]["progress"]
-    #finished = music_data.get("data", {}).get("data", [{}])[0].get("finished", False)
+    # finished = music_data.get("data", {}).get("data", [{}])[0].get("finished", False)
 
-    #if finished == True:
+    # if finished == True:
     if finished == "100%":
         song_path = music_data["data"]["data"]["songs"][0]["song_path"]
         print(f"Song_url: {song_path}")
