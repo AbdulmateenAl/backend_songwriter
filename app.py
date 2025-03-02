@@ -99,7 +99,7 @@ async def get_audio(task_id: str):
     message = data.get('message', "").lower()
 
     if status_code == 200 or message == "success":
-        while data[data][0]["audio_url"] == "":
+        while data["data"][0]["audio_url"] == "":
             time.sleep(50)
         song_path = data.get("data", [{}])[0].get("audio_url", None)
         if song_path:
