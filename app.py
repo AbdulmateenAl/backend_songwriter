@@ -124,9 +124,8 @@ async def get_audio(task_id: str):
     except json.JSONDecodeError:
         return JSONResponse(content={"error": "Invalid response from API"}, status_code=500)
 
+    print(music_data)
     status_code = music_data.get('code', None)
-    print(music_data["code"])
-    print(music_data["data"]["progress"])
     #message = data.get('message', "").lower() #For sonic API
 
     if status_code == "success":
